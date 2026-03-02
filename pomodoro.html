@@ -1,504 +1,129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Player – Pomodoro</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      :root {
-        --bg: #faf6ef;
-        --primary: #e5d9ec;
-        --accent: #fddf85;
-        --text: #000000;
-        --radius: 20px;
-        --pixel: "Pixelify Sans", sans-serif;
-      }
-
-      body {
-        font-family: var(--pixel);
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 16px;
-        overflow-x: hidden;
-      }
-
-      /* Stars background */
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image:
-          radial-gradient(circle, #c4aed4 1px, transparent 1px),
-          radial-gradient(circle, #fddf85 1px, transparent 1px),
-          radial-gradient(circle, #c4aed4 1px, transparent 1px);
-        background-size:
-          120px 120px,
-          200px 200px,
-          300px 300px;
-        background-position:
-          10px 20px,
-          60px 80px,
-          150px 40px;
-        opacity: 0.25;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      .container {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 520px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 24px;
-      }
-
-      /* ---- Header ---- */
-      h1 {
-        font-size: 48px;
-        letter-spacing: 2px;
-        color: var(--text);
-        text-align: center;
-        line-height: 1;
-      }
-      h1 span {
-        color: #b37fb0;
-      }
-      .subtitle {
-        font-size: 13px;
-        letter-spacing: 1px;
-        opacity: 0.6;
-      }
-
-      /* ---- Pixel character ---- */
-      .character {
-        image-rendering: pixelated;
-        font-size: 52px;
-        animation: bounce 1.4s infinite ease-in-out;
-      }
-      @keyframes bounce {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-8px);
-        }
-      }
-
-      /* ---- Mode tabs ---- */
-      .tabs {
-        display: flex;
-        gap: 8px;
-        background: var(--primary);
-        padding: 6px;
-        border-radius: 100px;
-      }
-      .tab {
-        font-family: var(--pixel);
-        font-size: 13px;
-        padding: 8px 20px;
-        border: none;
-        border-radius: 100px;
-        cursor: pointer;
-        background: transparent;
-        transition:
-          background 0.2s,
-          color 0.2s;
-      }
-      .tab.active {
-        background: var(--accent);
-        color: #000;
-      }
-      .tab:hover:not(.active) {
-        background: rgba(0, 0, 0, 0.06);
-      }
-
-      /* ---- Timer card ---- */
-      .card {
-        width: 100%;
-        background: var(--primary);
-        border-radius: var(--radius);
-        padding: 40px 32px 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 28px;
-        box-shadow:
-          6px 6px 0 #d1bedd,
-          0 0 0 3px #d1bedd;
-      }
-
-      /* pixel progress ring */
-      .ring-wrap {
-        position: relative;
-        width: 220px;
-        height: 220px;
-      }
-      .ring-wrap svg {
-        transform: rotate(-90deg);
-      }
-      .ring-track {
-        fill: none;
-        stroke: #faf6ef;
-        stroke-width: 12;
-      }
-      .ring-fill {
-        fill: none;
-        stroke: var(--accent);
-        stroke-width: 12;
-        stroke-linecap: square;
-        transition: stroke-dashoffset 0.9s linear;
-      }
-
-      .timer-display {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-      }
-      .timer-time {
-        font-size: 60px;
-        letter-spacing: 4px;
-        line-height: 1;
-      }
-      .timer-label {
-        font-size: 12px;
-        letter-spacing: 2px;
-        opacity: 0.55;
-      }
-
-      /* ---- Controls ---- */
-      .controls {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-      .btn {
-        font-family: var(--pixel);
-        font-size: 15px;
-        padding: 14px 36px;
-        border: none;
-        border-radius: 100px;
-        cursor: pointer;
-        transition:
-          transform 0.1s,
-          box-shadow 0.1s;
-      }
-      .btn:active {
-        transform: translateY(2px);
-        box-shadow: none !important;
-      }
-      .btn-primary {
-        background: var(--accent);
-        color: #000;
-        box-shadow: 4px 4px 0 #e0b93e;
-      }
-      .btn-icon {
-        background: var(--bg);
-        color: #000;
-        width: 48px;
-        height: 48px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        box-shadow: 3px 3px 0 #ddd3c8;
-      }
-
-      /* ---- Sessions ---- */
-      .sessions {
-        display: flex;
-        gap: 8px;
-      }
-      .session-dot {
-        width: 14px;
-        height: 14px;
-        background: var(--bg);
-        border: 2px solid #c0a8cc;
-        border-radius: 3px;
-        image-rendering: pixelated;
-        transition: background 0.3s;
-      }
-      .session-dot.done {
-        background: var(--accent);
-        border-color: #e0b93e;
-      }
-
-      /* ---- Stats row ---- */
-      .stats {
-        display: flex;
-        gap: 16px;
-        width: 100%;
-      }
-      .stat-card {
-        flex: 1;
-        background: var(--primary);
-        border-radius: var(--radius);
-        padding: 16px;
-        text-align: center;
-        box-shadow: 4px 4px 0 #d1bedd;
-      }
-      .stat-num {
-        font-size: 28px;
-      }
-      .stat-lbl {
-        font-size: 11px;
-        opacity: 0.55;
-        letter-spacing: 1px;
-      }
-
-      /* ---- Pixel trees deco ---- */
-      .deco {
-        display: flex;
-        gap: 8px;
-        font-size: 28px;
-        opacity: 0.7;
-      }
-
-      /* ---- Notification bar ---- */
-      .notif {
-        font-size: 13px;
-        background: var(--accent);
-        color: #000;
-        padding: 10px 24px;
-        border-radius: 100px;
-        opacity: 0;
-        transform: translateY(8px);
-        transition:
-          opacity 0.4s,
-          transform 0.4s;
-        pointer-events: none;
-      }
-      .notif.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="deco">🌲🌲🏡🌲🌲</div>
-
-      <h1>PIXEL<span>FOCUS</span></h1>
-      <p class="subtitle">★ STAY COZY. STAY FOCUSED. ★</p>
-
-      <div class="character" id="char">🧑‍💻</div>
-
-      <div class="tabs">
-        <button class="tab active" data-mode="pomodoro" data-mins="25">
-          FOCUS
-        </button>
-        <button class="tab" data-mode="short" data-mins="5">SHORT BREAK</button>
-        <button class="tab" data-mode="long" data-mins="15">LONG BREAK</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelFocus – Pomodoro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #FAF6EF; --primary: #E5D9EC; --accent: #FDDF85;
+      --accent-dark: #d9b93e; --text: #1a1a1a; --soft: #c4aed4;
+      --shadow: #cbb8d8; --font: 'Press Start 2P', monospace;
+    }
+    body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 48px 20px 60px; line-height: 1.8;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(197,174,212,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(197,174,212,.1) 1px, transparent 1px);
+      background-size: 32px 32px; pointer-events: none; z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .logo { font-size: 22px; letter-spacing: 3px; text-align: center; }
+    .logo span { color: #9b6db5; }
+    .tagline { font-size: 7px; letter-spacing: 2px; color: var(--soft); }
+    .character { font-size: 44px; animation: hop 1.6s infinite ease-in-out; display: block; text-align: center; }
+    @keyframes hop { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+    .char-msg { font-size: 6px; color: var(--soft); letter-spacing: 1px; text-align: center; }
+    .tabs { display: flex; background: var(--primary); border: 3px solid var(--shadow); overflow: hidden; }
+    .tab { font-family: var(--font); font-size: 7px; padding: 11px 16px; border: none; cursor: pointer; background: transparent; color: #888; letter-spacing: 1px; border-right: 2px solid var(--shadow); transition: background .15s, color .15s; }
+    .tab:last-child { border-right: none; }
+    .tab.active { background: var(--accent); color: #000; }
+    .tab:hover:not(.active) { background: rgba(0,0,0,.05); color: #333; }
+    .card { width: 100%; background: var(--primary); border: 4px solid var(--shadow); box-shadow: 4px 4px 0 var(--shadow), 8px 8px 0 rgba(180,155,195,.25); padding: 36px 28px 32px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .ring-wrap { position: relative; width: 210px; height: 210px; }
+    .ring-wrap svg { transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: #ddd0e8; stroke-width: 14; }
+    .ring-fill { fill: none; stroke: var(--accent); stroke-width: 14; stroke-linecap: square; transition: stroke-dashoffset .95s linear; filter: drop-shadow(0 0 5px rgba(253,223,133,.55)); }
+    .timer-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+    .timer-time { font-size: 36px; letter-spacing: 3px; text-shadow: 2px 2px 0 rgba(0,0,0,.07); }
+    .mode-badge { font-size: 6px; background: var(--accent); color: #000; padding: 5px 10px; letter-spacing: 1.5px; }
+    .sessions-row { display: flex; align-items: center; gap: 10px; }
+    .sessions-lbl { font-size: 6px; color: var(--soft); letter-spacing: 1px; margin-right: 4px; }
+    .dot { width: 16px; height: 16px; background: var(--bg); border: 2px solid var(--shadow); transition: background .3s; }
+    .dot.done { background: var(--accent); border-color: var(--accent-dark); }
+    .controls { display: flex; gap: 12px; align-items: center; }
+    .btn { font-family: var(--font); border: none; cursor: pointer; transition: transform .08s; }
+    .btn:active { transform: translate(2px,2px); box-shadow: none !important; }
+    .btn-main { font-size: 11px; padding: 14px 32px; background: var(--accent); color: #000; letter-spacing: 2px; box-shadow: 4px 4px 0 var(--accent-dark); }
+    .btn-main:hover { background: #ffe9a0; }
+    .btn-sm { font-size: 14px; width: 44px; height: 44px; background: var(--bg); color: #555; border: 2px solid var(--shadow); box-shadow: 3px 3px 0 var(--shadow); display: flex; align-items: center; justify-content: center; }
+    .btn-sm:hover { background: #efe6f5; }
+    .stats { display: flex; gap: 12px; width: 100%; }
+    .stat { flex: 1; background: var(--primary); border: 3px solid var(--shadow); box-shadow: 3px 3px 0 var(--shadow); padding: 14px 8px; text-align: center; display: flex; flex-direction: column; gap: 8px; }
+    .stat-num { font-size: 22px; color: #7a4f9a; }
+    .stat-lbl { font-size: 6px; color: #888; letter-spacing: 1px; }
+    .toast { font-size: 7px; background: var(--accent); color: #000; padding: 12px 18px; border: 3px solid var(--accent-dark); box-shadow: 3px 3px 0 var(--accent-dark); letter-spacing: 1px; opacity: 0; transform: translateY(6px); transition: opacity .35s, transform .35s; pointer-events: none; text-align: center; line-height: 2; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .footer { font-size: 6px; color: var(--soft); letter-spacing: 2px; }
+    .deco { font-size: 24px; letter-spacing: 4px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="deco">🌲🏡🌲</div>
+  <div class="logo">PIXEL<span>FOCUS</span></div>
+  <div class="tagline">★ STAY COZY · STAY FOCUSED ★</div>
+  <span class="character" id="char">🧑‍💻</span>
+  <div class="char-msg" id="charMsg">READY TO FOCUS?</div>
+  <div class="tabs">
+    <button class="tab active" data-mode="pomodoro">FOCUS</button>
+    <button class="tab" data-mode="short">SHORT</button>
+    <button class="tab" data-mode="long">LONG</button>
+  </div>
+  <div class="card">
+    <div class="ring-wrap">
+      <svg width="210" height="210" viewBox="0 0 210 210">
+        <circle class="ring-track" cx="105" cy="105" r="91"/>
+        <circle class="ring-fill" id="ringFill" cx="105" cy="105" r="91"/>
+      </svg>
+      <div class="timer-inner">
+        <div class="timer-time" id="timerDisplay">25:00</div>
+        <div class="mode-badge" id="modeLabel">FOCUS TIME</div>
       </div>
-
-      <div class="card">
-        <!-- ring -->
-        <div class="ring-wrap">
-          <svg width="220" height="220" viewBox="0 0 220 220">
-            <circle class="ring-track" cx="110" cy="110" r="96" />
-            <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="96" />
-          </svg>
-          <div class="timer-display">
-            <div class="timer-time" id="timerDisplay">25:00</div>
-            <div class="timer-label" id="modeLabel">FOCUS TIME</div>
-          </div>
-        </div>
-
-        <!-- sessions -->
-        <div class="sessions" id="sessions">
-          <div class="session-dot"></div>
-          <div class="session-dot"></div>
-          <div class="session-dot"></div>
-          <div class="session-dot"></div>
-        </div>
-
-        <!-- controls -->
-        <div class="controls">
-          <button class="btn btn-icon" id="resetBtn" title="Reset">↺</button>
-          <button class="btn btn-primary" id="startBtn">▶ START</button>
-          <button class="btn btn-icon" id="skipBtn" title="Skip">⏭</button>
-        </div>
-      </div>
-
-      <!-- stats -->
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-num" id="statPomodoros">0</div>
-          <div class="stat-lbl">SESSIONS</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" id="statMinutes">0</div>
-          <div class="stat-lbl">MINUTES</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num" id="statStreak">0</div>
-          <div class="stat-lbl">STREAK 🔥</div>
-        </div>
-      </div>
-
-      <div class="notif" id="notif">🍅 Time's up! Take a break~</div>
-
-      <p class="subtitle" style="margin-top: 8px">DESIGN BY DISHA</p>
     </div>
-
-    <script>
-      const CIRCUMFERENCE = 2 * Math.PI * 96;
-      const ringFill = document.getElementById("ringFill");
-      ringFill.style.strokeDasharray = CIRCUMFERENCE;
-      ringFill.style.strokeDashoffset = "0";
-
-      const modes = {
-        pomodoro: { mins: 25, label: "FOCUS TIME", char: "🧑‍💻" },
-        short: { mins: 5, label: "SHORT BREAK", char: "☕" },
-        long: { mins: 15, label: "LONG BREAK", char: "🛋️" },
-      };
-
-      let currentMode = "pomodoro";
-      let totalSecs = 25 * 60;
-      let remaining = totalSecs;
-      let running = false;
-      let interval = null;
-      let completedPomodoros = 0;
-      let totalMinutes = 0;
-      let streak = 0;
-
-      const timerDisplay = document.getElementById("timerDisplay");
-      const modeLabel = document.getElementById("modeLabel");
-      const startBtn = document.getElementById("startBtn");
-      const resetBtn = document.getElementById("resetBtn");
-      const skipBtn = document.getElementById("skipBtn");
-      const charEl = document.getElementById("char");
-      const notif = document.getElementById("notif");
-
-      function formatTime(s) {
-        const m = Math.floor(s / 60)
-          .toString()
-          .padStart(2, "0");
-        const sec = (s % 60).toString().padStart(2, "0");
-        return `${m}:${sec}`;
-      }
-
-      function updateRing() {
-        const pct = remaining / totalSecs;
-        ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
-      }
-
-      function updateDisplay() {
-        timerDisplay.textContent = formatTime(remaining);
-        updateRing();
-      }
-
-      function setMode(mode) {
-        currentMode = mode;
-        const m = modes[mode];
-        totalSecs = m.mins * 60;
-        remaining = totalSecs;
-        modeLabel.textContent = m.label;
-        charEl.textContent = m.char;
-        stopTimer();
-        startBtn.textContent = "▶ START";
-        updateDisplay();
-        document
-          .querySelectorAll(".tab")
-          .forEach((t) =>
-            t.classList.toggle("active", t.dataset.mode === mode),
-          );
-      }
-
-      function startTimer() {
-        running = true;
-        startBtn.textContent = "⏸ PAUSE";
-        interval = setInterval(() => {
-          remaining--;
-          updateDisplay();
-          if (remaining <= 0) {
-            clearInterval(interval);
-            running = false;
-            onComplete();
-          }
-        }, 1000);
-      }
-
-      function stopTimer() {
-        clearInterval(interval);
-        running = false;
-      }
-
-      function onComplete() {
-        if (currentMode === "pomodoro") {
-          completedPomodoros++;
-          totalMinutes += modes.pomodoro.mins;
-          streak++;
-          document.getElementById("statPomodoros").textContent =
-            completedPomodoros;
-          document.getElementById("statMinutes").textContent = totalMinutes;
-          document.getElementById("statStreak").textContent = streak;
-          // fill session dots
-          const dots = document.querySelectorAll(".session-dot");
-          const idx = (completedPomodoros - 1) % 4;
-          dots[idx].classList.add("done");
-          showNotif("🍅 Focus done! Take a break~");
-        } else {
-          showNotif("✨ Break over! Back to work!");
-        }
-        startBtn.textContent = "▶ START";
-      }
-
-      function showNotif(msg) {
-        notif.textContent = msg;
-        notif.classList.add("show");
-        setTimeout(() => notif.classList.remove("show"), 3500);
-      }
-
-      startBtn.addEventListener("click", () => {
-        if (running) {
-          stopTimer();
-          startBtn.textContent = "▶ START";
-        } else {
-          startTimer();
-        }
-      });
-
-      resetBtn.addEventListener("click", () => {
-        setMode(currentMode);
-      });
-
-      skipBtn.addEventListener("click", () => {
-        stopTimer();
-        remaining = 0;
-        updateDisplay();
-        onComplete();
-      });
-
-      document.querySelectorAll(".tab").forEach((tab) => {
-        tab.addEventListener("click", () => setMode(tab.dataset.mode));
-      });
-
-      updateDisplay();
-    </script>
-  </body>
+    <div class="sessions-row">
+      <span class="sessions-lbl">SESSION:</span>
+      <div class="dot" id="d0"></div><div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div><div class="dot" id="d3"></div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-sm" id="resetBtn">↺</button>
+      <button class="btn btn-main" id="startBtn">▶ START</button>
+      <button class="btn btn-sm" id="skipBtn">⏭</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="statS">0</div><div class="stat-lbl">SESSIONS</div></div>
+    <div class="stat"><div class="stat-num" id="statM">0</div><div class="stat-lbl">MINUTES</div></div>
+    <div class="stat"><div class="stat-num" id="statK">0</div><div class="stat-lbl">STREAK 🔥</div></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="footer">DESIGN BY DISHA</div>
+</div>
+<script>
+  const C=2*Math.PI*91, ring=document.getElementById('ringFill');
+  ring.style.strokeDasharray=C; ring.style.strokeDashoffset='0';
+  const cfg={pomodoro:{secs:25*60,label:'FOCUS TIME',char:'🧑‍💻',msg:'TIME TO FOCUS!'},short:{secs:5*60,label:'SHORT BREAK',char:'☕',msg:'TAKE A BREATHER~'},long:{secs:15*60,label:'LONG BREAK',char:'🛋️',msg:'RELAX & RECHARGE!'}};
+  let mode='pomodoro',total=cfg.pomodoro.secs,left=total,running=false,ticker=null,sessions=0,mins=0,streak=0;
+  const $=id=>document.getElementById(id);
+  const disp=$('timerDisplay'),badge=$('modeLabel'),startB=$('startBtn'),charEl=$('char'),msgEl=$('charMsg'),toast=$('toast');
+  function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+  function render(){disp.textContent=fmt(left);ring.style.strokeDashoffset=C*(1-left/total)}
+  function setMode(m){mode=m;const c=cfg[m];total=c.secs;left=total;badge.textContent=c.label;charEl.textContent=c.char;msgEl.textContent=c.msg;stop();startB.textContent='▶ START';render();document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===m))}
+  function stop(){clearInterval(ticker);running=false}
+  function start(){running=true;startB.textContent='⏸ PAUSE';ticker=setInterval(()=>{left--;render();if(left<=0){stop();complete()}},1000)}
+  function complete(){startB.textContent='▶ START';if(mode==='pomodoro'){sessions++;mins+=25;streak++;$('statS').textContent=sessions;$('statM').textContent=mins;$('statK').textContent=streak;$('d'+((sessions-1)%4)).classList.add('done');if(sessions%4===0)document.querySelectorAll('.dot').forEach(d=>d.classList.remove('done'));showToast('🍅 SESSION DONE! NICE WORK!')}else{showToast('✨ BREAK OVER! LETS GO!')}}
+  function showToast(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3500)}
+  startB.addEventListener('click',()=>running?(stop(),startB.textContent='▶ START'):start());
+  $('resetBtn').addEventListener('click',()=>setMode(mode));
+  $('skipBtn').addEventListener('click',()=>{stop();left=0;render();complete()});
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setMode(t.dataset.mode)));
+  render();
+</script>
+</body>
 </html>
