@@ -1,318 +1,504 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Player – Pomodoro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Player – Pomodoro</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    :root {
-      --bg: #FAF6EF;
-      --primary: #E5D9EC;
-      --accent: #FDDF85;
-      --text: #000000;
-      --radius: 20px;
-      --pixel: 'Pixelify Sans', sans-serif;
-    }
+      :root {
+        --bg: #faf6ef;
+        --primary: #e5d9ec;
+        --accent: #fddf85;
+        --text: #000000;
+        --radius: 20px;
+        --pixel: "Pixelify Sans", sans-serif;
+      }
 
-    body {
-      font-family: var(--pixel);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 16px;
-      overflow-x: hidden;
-    }
+      body {
+        font-family: var(--pixel);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 16px;
+        overflow-x: hidden;
+      }
 
-    /* Stars background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        radial-gradient(circle, #c4aed4 1px, transparent 1px),
-        radial-gradient(circle, #FDDF85 1px, transparent 1px),
-        radial-gradient(circle, #c4aed4 1px, transparent 1px);
-      background-size: 120px 120px, 200px 200px, 300px 300px;
-      background-position: 10px 20px, 60px 80px, 150px 40px;
-      opacity: 0.25;
-      pointer-events: none;
-      z-index: 0;
-    }
+      /* Stars background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          radial-gradient(circle, #c4aed4 1px, transparent 1px),
+          radial-gradient(circle, #fddf85 1px, transparent 1px),
+          radial-gradient(circle, #c4aed4 1px, transparent 1px);
+        background-size:
+          120px 120px,
+          200px 200px,
+          300px 300px;
+        background-position:
+          10px 20px,
+          60px 80px,
+          150px 40px;
+        opacity: 0.25;
+        pointer-events: none;
+        z-index: 0;
+      }
 
-    .container { position: relative; z-index: 1; width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+      .container {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
 
-    /* ---- Header ---- */
-    h1 { font-size: 48px; letter-spacing: 2px; color: var(--text); text-align: center; line-height: 1; }
-    h1 span { color: #b37fb0; }
-    .subtitle { font-size: 13px; letter-spacing: 1px; opacity: 0.6; }
+      /* ---- Header ---- */
+      h1 {
+        font-size: 48px;
+        letter-spacing: 2px;
+        color: var(--text);
+        text-align: center;
+        line-height: 1;
+      }
+      h1 span {
+        color: #b37fb0;
+      }
+      .subtitle {
+        font-size: 13px;
+        letter-spacing: 1px;
+        opacity: 0.6;
+      }
 
-    /* ---- Pixel character ---- */
-    .character { image-rendering: pixelated; font-size: 52px; animation: bounce 1.4s infinite ease-in-out; }
-    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+      /* ---- Pixel character ---- */
+      .character {
+        image-rendering: pixelated;
+        font-size: 52px;
+        animation: bounce 1.4s infinite ease-in-out;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
 
-    /* ---- Mode tabs ---- */
-    .tabs { display: flex; gap: 8px; background: var(--primary); padding: 6px; border-radius: 100px; }
-    .tab { font-family: var(--pixel); font-size: 13px; padding: 8px 20px; border: none; border-radius: 100px; cursor: pointer; background: transparent; transition: background .2s, color .2s; }
-    .tab.active { background: var(--accent); color: #000; }
-    .tab:hover:not(.active) { background: rgba(0,0,0,.06); }
+      /* ---- Mode tabs ---- */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        background: var(--primary);
+        padding: 6px;
+        border-radius: 100px;
+      }
+      .tab {
+        font-family: var(--pixel);
+        font-size: 13px;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 100px;
+        cursor: pointer;
+        background: transparent;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .tab.active {
+        background: var(--accent);
+        color: #000;
+      }
+      .tab:hover:not(.active) {
+        background: rgba(0, 0, 0, 0.06);
+      }
 
-    /* ---- Timer card ---- */
-    .card {
-      width: 100%;
-      background: var(--primary);
-      border-radius: var(--radius);
-      padding: 40px 32px 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 28px;
-      box-shadow: 6px 6px 0 #d1bedd, 0 0 0 3px #d1bedd;
-    }
+      /* ---- Timer card ---- */
+      .card {
+        width: 100%;
+        background: var(--primary);
+        border-radius: var(--radius);
+        padding: 40px 32px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+        box-shadow:
+          6px 6px 0 #d1bedd,
+          0 0 0 3px #d1bedd;
+      }
 
-    /* pixel progress ring */
-    .ring-wrap { position: relative; width: 220px; height: 220px; }
-    .ring-wrap svg { transform: rotate(-90deg); }
-    .ring-track { fill: none; stroke: #FAF6EF; stroke-width: 12; }
-    .ring-fill  { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: square; transition: stroke-dashoffset .9s linear; }
+      /* pixel progress ring */
+      .ring-wrap {
+        position: relative;
+        width: 220px;
+        height: 220px;
+      }
+      .ring-wrap svg {
+        transform: rotate(-90deg);
+      }
+      .ring-track {
+        fill: none;
+        stroke: #faf6ef;
+        stroke-width: 12;
+      }
+      .ring-fill {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 12;
+        stroke-linecap: square;
+        transition: stroke-dashoffset 0.9s linear;
+      }
 
-    .timer-display {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .timer-time { font-size: 60px; letter-spacing: 4px; line-height: 1; }
-    .timer-label { font-size: 12px; letter-spacing: 2px; opacity: 0.55; }
+      .timer-display {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .timer-time {
+        font-size: 60px;
+        letter-spacing: 4px;
+        line-height: 1;
+      }
+      .timer-label {
+        font-size: 12px;
+        letter-spacing: 2px;
+        opacity: 0.55;
+      }
 
-    /* ---- Controls ---- */
-    .controls { display: flex; gap: 12px; align-items: center; }
-    .btn {
-      font-family: var(--pixel);
-      font-size: 15px;
-      padding: 14px 36px;
-      border: none;
-      border-radius: 100px;
-      cursor: pointer;
-      transition: transform .1s, box-shadow .1s;
-    }
-    .btn:active { transform: translateY(2px); box-shadow: none !important; }
-    .btn-primary { background: var(--accent); color: #000; box-shadow: 4px 4px 0 #e0b93e; }
-    .btn-icon { background: var(--bg); color: #000; width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 3px 3px 0 #ddd3c8; }
+      /* ---- Controls ---- */
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .btn {
+        font-family: var(--pixel);
+        font-size: 15px;
+        padding: 14px 36px;
+        border: none;
+        border-radius: 100px;
+        cursor: pointer;
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: none !important;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 4px 4px 0 #e0b93e;
+      }
+      .btn-icon {
+        background: var(--bg);
+        color: #000;
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: 3px 3px 0 #ddd3c8;
+      }
 
-    /* ---- Sessions ---- */
-    .sessions { display: flex; gap: 8px; }
-    .session-dot { width: 14px; height: 14px; background: var(--bg); border: 2px solid #c0a8cc; border-radius: 3px; image-rendering: pixelated; transition: background .3s; }
-    .session-dot.done { background: var(--accent); border-color: #e0b93e; }
+      /* ---- Sessions ---- */
+      .sessions {
+        display: flex;
+        gap: 8px;
+      }
+      .session-dot {
+        width: 14px;
+        height: 14px;
+        background: var(--bg);
+        border: 2px solid #c0a8cc;
+        border-radius: 3px;
+        image-rendering: pixelated;
+        transition: background 0.3s;
+      }
+      .session-dot.done {
+        background: var(--accent);
+        border-color: #e0b93e;
+      }
 
-    /* ---- Stats row ---- */
-    .stats { display: flex; gap: 16px; width: 100%; }
-    .stat-card { flex: 1; background: var(--primary); border-radius: var(--radius); padding: 16px; text-align: center; box-shadow: 4px 4px 0 #d1bedd; }
-    .stat-num  { font-size: 28px; }
-    .stat-lbl  { font-size: 11px; opacity: .55; letter-spacing: 1px; }
+      /* ---- Stats row ---- */
+      .stats {
+        display: flex;
+        gap: 16px;
+        width: 100%;
+      }
+      .stat-card {
+        flex: 1;
+        background: var(--primary);
+        border-radius: var(--radius);
+        padding: 16px;
+        text-align: center;
+        box-shadow: 4px 4px 0 #d1bedd;
+      }
+      .stat-num {
+        font-size: 28px;
+      }
+      .stat-lbl {
+        font-size: 11px;
+        opacity: 0.55;
+        letter-spacing: 1px;
+      }
 
-    /* ---- Pixel trees deco ---- */
-    .deco { display: flex; gap: 8px; font-size: 28px; opacity: .7; }
+      /* ---- Pixel trees deco ---- */
+      .deco {
+        display: flex;
+        gap: 8px;
+        font-size: 28px;
+        opacity: 0.7;
+      }
 
-    /* ---- Notification bar ---- */
-    .notif { font-size: 13px; background: var(--accent); color: #000; padding: 10px 24px; border-radius: 100px; opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .4s; pointer-events: none; }
-    .notif.show { opacity: 1; transform: translateY(0); }
-  </style>
-</head>
-<body>
-<div class="container">
-  <div class="deco">🌲🌲🏡🌲🌲</div>
+      /* ---- Notification bar ---- */
+      .notif {
+        font-size: 13px;
+        background: var(--accent);
+        color: #000;
+        padding: 10px 24px;
+        border-radius: 100px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.4s,
+          transform 0.4s;
+        pointer-events: none;
+      }
+      .notif.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="deco">🌲🌲🏡🌲🌲</div>
 
-  <h1>PIXEL<span>FOCUS</span></h1>
-  <p class="subtitle">★ STAY COZY. STAY FOCUSED. ★</p>
+      <h1>PIXEL<span>FOCUS</span></h1>
+      <p class="subtitle">★ STAY COZY. STAY FOCUSED. ★</p>
 
-  <div class="character" id="char">🧑‍💻</div>
+      <div class="character" id="char">🧑‍💻</div>
 
-  <div class="tabs">
-    <button class="tab active" data-mode="pomodoro" data-mins="25">FOCUS</button>
-    <button class="tab" data-mode="short" data-mins="5">SHORT BREAK</button>
-    <button class="tab" data-mode="long" data-mins="15">LONG BREAK</button>
-  </div>
-
-  <div class="card">
-    <!-- ring -->
-    <div class="ring-wrap">
-      <svg width="220" height="220" viewBox="0 0 220 220">
-        <circle class="ring-track" cx="110" cy="110" r="96"/>
-        <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="96"/>
-      </svg>
-      <div class="timer-display">
-        <div class="timer-time" id="timerDisplay">25:00</div>
-        <div class="timer-label" id="modeLabel">FOCUS TIME</div>
+      <div class="tabs">
+        <button class="tab active" data-mode="pomodoro" data-mins="25">
+          FOCUS
+        </button>
+        <button class="tab" data-mode="short" data-mins="5">SHORT BREAK</button>
+        <button class="tab" data-mode="long" data-mins="15">LONG BREAK</button>
       </div>
+
+      <div class="card">
+        <!-- ring -->
+        <div class="ring-wrap">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle class="ring-track" cx="110" cy="110" r="96" />
+            <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="96" />
+          </svg>
+          <div class="timer-display">
+            <div class="timer-time" id="timerDisplay">25:00</div>
+            <div class="timer-label" id="modeLabel">FOCUS TIME</div>
+          </div>
+        </div>
+
+        <!-- sessions -->
+        <div class="sessions" id="sessions">
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+        </div>
+
+        <!-- controls -->
+        <div class="controls">
+          <button class="btn btn-icon" id="resetBtn" title="Reset">↺</button>
+          <button class="btn btn-primary" id="startBtn">▶ START</button>
+          <button class="btn btn-icon" id="skipBtn" title="Skip">⏭</button>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-num" id="statPomodoros">0</div>
+          <div class="stat-lbl">SESSIONS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statMinutes">0</div>
+          <div class="stat-lbl">MINUTES</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statStreak">0</div>
+          <div class="stat-lbl">STREAK 🔥</div>
+        </div>
+      </div>
+
+      <div class="notif" id="notif">🍅 Time's up! Take a break~</div>
+
+      <p class="subtitle" style="margin-top: 8px">DESIGN BY DISHA</p>
     </div>
 
-    <!-- sessions -->
-    <div class="sessions" id="sessions">
-      <div class="session-dot"></div>
-      <div class="session-dot"></div>
-      <div class="session-dot"></div>
-      <div class="session-dot"></div>
-    </div>
+    <script>
+      const CIRCUMFERENCE = 2 * Math.PI * 96;
+      const ringFill = document.getElementById("ringFill");
+      ringFill.style.strokeDasharray = CIRCUMFERENCE;
+      ringFill.style.strokeDashoffset = "0";
 
-    <!-- controls -->
-    <div class="controls">
-      <button class="btn btn-icon" id="resetBtn" title="Reset">↺</button>
-      <button class="btn btn-primary" id="startBtn">▶ START</button>
-      <button class="btn btn-icon" id="skipBtn" title="Skip">⏭</button>
-    </div>
-  </div>
+      const modes = {
+        pomodoro: { mins: 25, label: "FOCUS TIME", char: "🧑‍💻" },
+        short: { mins: 5, label: "SHORT BREAK", char: "☕" },
+        long: { mins: 15, label: "LONG BREAK", char: "🛋️" },
+      };
 
-  <!-- stats -->
-  <div class="stats">
-    <div class="stat-card">
-      <div class="stat-num" id="statPomodoros">0</div>
-      <div class="stat-lbl">SESSIONS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="statMinutes">0</div>
-      <div class="stat-lbl">MINUTES</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="statStreak">0</div>
-      <div class="stat-lbl">STREAK 🔥</div>
-    </div>
-  </div>
+      let currentMode = "pomodoro";
+      let totalSecs = 25 * 60;
+      let remaining = totalSecs;
+      let running = false;
+      let interval = null;
+      let completedPomodoros = 0;
+      let totalMinutes = 0;
+      let streak = 0;
 
-  <div class="notif" id="notif">🍅 Time's up! Take a break~</div>
+      const timerDisplay = document.getElementById("timerDisplay");
+      const modeLabel = document.getElementById("modeLabel");
+      const startBtn = document.getElementById("startBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const skipBtn = document.getElementById("skipBtn");
+      const charEl = document.getElementById("char");
+      const notif = document.getElementById("notif");
 
-  <p class="subtitle" style="margin-top:8px;">DESIGN BY ZOE TANG</p>
-</div>
+      function formatTime(s) {
+        const m = Math.floor(s / 60)
+          .toString()
+          .padStart(2, "0");
+        const sec = (s % 60).toString().padStart(2, "0");
+        return `${m}:${sec}`;
+      }
 
-<script>
-  const CIRCUMFERENCE = 2 * Math.PI * 96;
-  const ringFill = document.getElementById('ringFill');
-  ringFill.style.strokeDasharray = CIRCUMFERENCE;
-  ringFill.style.strokeDashoffset = '0';
+      function updateRing() {
+        const pct = remaining / totalSecs;
+        ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+      }
 
-  const modes = {
-    pomodoro: { mins: 25, label: 'FOCUS TIME', char: '🧑‍💻' },
-    short:    { mins: 5,  label: 'SHORT BREAK', char: '☕' },
-    long:     { mins: 15, label: 'LONG BREAK', char: '🛋️' },
-  };
+      function updateDisplay() {
+        timerDisplay.textContent = formatTime(remaining);
+        updateRing();
+      }
 
-  let currentMode = 'pomodoro';
-  let totalSecs = 25 * 60;
-  let remaining = totalSecs;
-  let running = false;
-  let interval = null;
-  let completedPomodoros = 0;
-  let totalMinutes = 0;
-  let streak = 0;
+      function setMode(mode) {
+        currentMode = mode;
+        const m = modes[mode];
+        totalSecs = m.mins * 60;
+        remaining = totalSecs;
+        modeLabel.textContent = m.label;
+        charEl.textContent = m.char;
+        stopTimer();
+        startBtn.textContent = "▶ START";
+        updateDisplay();
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) =>
+            t.classList.toggle("active", t.dataset.mode === mode),
+          );
+      }
 
-  const timerDisplay = document.getElementById('timerDisplay');
-  const modeLabel    = document.getElementById('modeLabel');
-  const startBtn     = document.getElementById('startBtn');
-  const resetBtn     = document.getElementById('resetBtn');
-  const skipBtn      = document.getElementById('skipBtn');
-  const charEl       = document.getElementById('char');
-  const notif        = document.getElementById('notif');
+      function startTimer() {
+        running = true;
+        startBtn.textContent = "⏸ PAUSE";
+        interval = setInterval(() => {
+          remaining--;
+          updateDisplay();
+          if (remaining <= 0) {
+            clearInterval(interval);
+            running = false;
+            onComplete();
+          }
+        }, 1000);
+      }
 
-  function formatTime(s) {
-    const m = Math.floor(s / 60).toString().padStart(2,'0');
-    const sec = (s % 60).toString().padStart(2,'0');
-    return `${m}:${sec}`;
-  }
-
-  function updateRing() {
-    const pct = remaining / totalSecs;
-    ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
-  }
-
-  function updateDisplay() {
-    timerDisplay.textContent = formatTime(remaining);
-    updateRing();
-  }
-
-  function setMode(mode) {
-    currentMode = mode;
-    const m = modes[mode];
-    totalSecs = m.mins * 60;
-    remaining = totalSecs;
-    modeLabel.textContent = m.label;
-    charEl.textContent = m.char;
-    stopTimer();
-    startBtn.textContent = '▶ START';
-    updateDisplay();
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
-  }
-
-  function startTimer() {
-    running = true;
-    startBtn.textContent = '⏸ PAUSE';
-    interval = setInterval(() => {
-      remaining--;
-      updateDisplay();
-      if (remaining <= 0) {
+      function stopTimer() {
         clearInterval(interval);
         running = false;
-        onComplete();
       }
-    }, 1000);
-  }
 
-  function stopTimer() {
-    clearInterval(interval);
-    running = false;
-  }
+      function onComplete() {
+        if (currentMode === "pomodoro") {
+          completedPomodoros++;
+          totalMinutes += modes.pomodoro.mins;
+          streak++;
+          document.getElementById("statPomodoros").textContent =
+            completedPomodoros;
+          document.getElementById("statMinutes").textContent = totalMinutes;
+          document.getElementById("statStreak").textContent = streak;
+          // fill session dots
+          const dots = document.querySelectorAll(".session-dot");
+          const idx = (completedPomodoros - 1) % 4;
+          dots[idx].classList.add("done");
+          showNotif("🍅 Focus done! Take a break~");
+        } else {
+          showNotif("✨ Break over! Back to work!");
+        }
+        startBtn.textContent = "▶ START";
+      }
 
-  function onComplete() {
-    if (currentMode === 'pomodoro') {
-      completedPomodoros++;
-      totalMinutes += modes.pomodoro.mins;
-      streak++;
-      document.getElementById('statPomodoros').textContent = completedPomodoros;
-      document.getElementById('statMinutes').textContent = totalMinutes;
-      document.getElementById('statStreak').textContent = streak;
-      // fill session dots
-      const dots = document.querySelectorAll('.session-dot');
-      const idx = (completedPomodoros - 1) % 4;
-      dots[idx].classList.add('done');
-      showNotif('🍅 Focus done! Take a break~');
-    } else {
-      showNotif('✨ Break over! Back to work!');
-    }
-    startBtn.textContent = '▶ START';
-  }
+      function showNotif(msg) {
+        notif.textContent = msg;
+        notif.classList.add("show");
+        setTimeout(() => notif.classList.remove("show"), 3500);
+      }
 
-  function showNotif(msg) {
-    notif.textContent = msg;
-    notif.classList.add('show');
-    setTimeout(() => notif.classList.remove('show'), 3500);
-  }
+      startBtn.addEventListener("click", () => {
+        if (running) {
+          stopTimer();
+          startBtn.textContent = "▶ START";
+        } else {
+          startTimer();
+        }
+      });
 
-  startBtn.addEventListener('click', () => {
-    if (running) { stopTimer(); startBtn.textContent = '▶ START'; }
-    else { startTimer(); }
-  });
+      resetBtn.addEventListener("click", () => {
+        setMode(currentMode);
+      });
 
-  resetBtn.addEventListener('click', () => { setMode(currentMode); });
+      skipBtn.addEventListener("click", () => {
+        stopTimer();
+        remaining = 0;
+        updateDisplay();
+        onComplete();
+      });
 
-  skipBtn.addEventListener('click', () => {
-    stopTimer();
-    remaining = 0;
-    updateDisplay();
-    onComplete();
-  });
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => setMode(tab.dataset.mode));
+      });
 
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => setMode(tab.dataset.mode));
-  });
-
-  updateDisplay();
-</script>
-</body>
+      updateDisplay();
+    </script>
+  </body>
 </html>
