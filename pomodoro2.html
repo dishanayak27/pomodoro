@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PixelFocus – Pomodoro</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #faf6ef;
+        --primary: #e5d9ec;
+        --accent: #fddf85;
+        --accent-dark: #d9b93e;
+        --text: #1a1a1a;
+        --soft: #c4aed4;
+        --shadow: #cbb8d8;
+        --font: "Press Start 2P", monospace;
+      }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 48px 20px 60px;
+        line-height: 1.8;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(197, 174, 212, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(197, 174, 212, 0.1) 1px, transparent 1px);
+        background-size: 32px 32px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .logo {
+        font-size: 22px;
+        letter-spacing: 3px;
+        text-align: center;
+      }
+      .logo span {
+        color: #9b6db5;
+      }
+      .tagline {
+        font-size: 7px;
+        letter-spacing: 2px;
+        color: var(--soft);
+      }
+      .character {
+        font-size: 44px;
+        animation: hop 1.6s infinite ease-in-out;
+        display: block;
+        text-align: center;
+      }
+      @keyframes hop {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-7px);
+        }
+      }
+      .char-msg {
+        font-size: 6px;
+        color: var(--soft);
+        letter-spacing: 1px;
+        text-align: center;
+      }
+
+      /* auto-start indicator */
+      .autostart-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--primary);
+        border: 3px solid var(--shadow);
+        padding: 10px 16px;
+        width: 100%;
+      }
+      .autostart-bar span {
+        font-size: 6px;
+        letter-spacing: 1px;
+        color: #666;
+        flex: 1;
+      }
+      .pill-toggle {
+        position: relative;
+        width: 44px;
+        height: 22px;
+        background: #ddd0e8;
+        border: 2px solid var(--shadow);
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+      .pill-toggle.on {
+        background: var(--accent);
+        border-color: var(--accent-dark);
+      }
+      .pill-toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        background: #fff;
+        border: 2px solid var(--shadow);
+        transition: transform 0.2s;
+      }
+      .pill-toggle.on::after {
+        transform: translateX(22px);
+        border-color: var(--accent-dark);
+      }
+
+      .tabs {
+        display: flex;
+        background: var(--primary);
+        border: 3px solid var(--shadow);
+        overflow: hidden;
+      }
+      .tab {
+        font-family: var(--font);
+        font-size: 7px;
+        padding: 11px 16px;
+        border: none;
+        cursor: pointer;
+        background: transparent;
+        color: #888;
+        letter-spacing: 1px;
+        border-right: 2px solid var(--shadow);
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .tab:last-child {
+        border-right: none;
+      }
+      .tab.active {
+        background: var(--accent);
+        color: #000;
+      }
+      .tab:hover:not(.active) {
+        background: rgba(0, 0, 0, 0.05);
+        color: #333;
+      }
+
+      .card {
+        width: 100%;
+        background: var(--primary);
+        border: 4px solid var(--shadow);
+        box-shadow:
+          4px 4px 0 var(--shadow),
+          8px 8px 0 rgba(180, 155, 195, 0.25);
+        padding: 36px 28px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .ring-wrap {
+        position: relative;
+        width: 210px;
+        height: 210px;
+      }
+      .ring-wrap svg {
+        transform: rotate(-90deg);
+      }
+      .ring-track {
+        fill: none;
+        stroke: #ddd0e8;
+        stroke-width: 14;
+      }
+      .ring-fill {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 14;
+        stroke-linecap: square;
+        transition: stroke-dashoffset 0.95s linear;
+        filter: drop-shadow(0 0 5px rgba(253, 223, 133, 0.55));
+      }
+      .ring-fill.break-mode {
+        stroke: var(--soft);
+        filter: drop-shadow(0 0 5px rgba(196, 174, 212, 0.6));
+      }
+      .timer-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .timer-time {
+        font-size: 36px;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.07);
+      }
+      .mode-badge {
+        font-size: 6px;
+        background: var(--accent);
+        color: #000;
+        padding: 5px 10px;
+        letter-spacing: 1.5px;
+      }
+      .mode-badge.break-mode {
+        background: var(--soft);
+      }
+
+      /* countdown to auto-start */
+      .autostart-countdown {
+        font-size: 7px;
+        color: #9b6db5;
+        letter-spacing: 1px;
+        height: 18px;
+        text-align: center;
+      }
+
+      .sessions-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .sessions-lbl {
+        font-size: 6px;
+        color: var(--soft);
+        letter-spacing: 1px;
+        margin-right: 4px;
+      }
+      .dot {
+        width: 16px;
+        height: 16px;
+        background: var(--bg);
+        border: 2px solid var(--shadow);
+        transition: background 0.3s;
+      }
+      .dot.done {
+        background: var(--accent);
+        border-color: var(--accent-dark);
+      }
+
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .btn {
+        font-family: var(--font);
+        border: none;
+        cursor: pointer;
+        transition: transform 0.08s;
+      }
+      .btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: none !important;
+      }
+      .btn-main {
+        font-size: 11px;
+        padding: 14px 32px;
+        background: var(--accent);
+        color: #000;
+        letter-spacing: 2px;
+        box-shadow: 4px 4px 0 var(--accent-dark);
+      }
+      .btn-main:hover {
+        background: #ffe9a0;
+      }
+      .btn-sm {
+        font-size: 14px;
+        width: 44px;
+        height: 44px;
+        background: var(--bg);
+        color: #555;
+        border: 2px solid var(--shadow);
+        box-shadow: 3px 3px 0 var(--shadow);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-sm:hover {
+        background: #efe6f5;
+      }
+
+      .stats {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+      }
+      .stat {
+        flex: 1;
+        background: var(--primary);
+        border: 3px solid var(--shadow);
+        box-shadow: 3px 3px 0 var(--shadow);
+        padding: 14px 8px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stat-num {
+        font-size: 22px;
+        color: #7a4f9a;
+      }
+      .stat-lbl {
+        font-size: 6px;
+        color: #888;
+        letter-spacing: 1px;
+      }
+
+      .toast {
+        font-size: 7px;
+        background: var(--accent);
+        color: #000;
+        padding: 12px 18px;
+        border: 3px solid var(--accent-dark);
+        box-shadow: 3px 3px 0 var(--accent-dark);
+        letter-spacing: 1px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.35s,
+          transform 0.35s;
+        pointer-events: none;
+        text-align: center;
+        line-height: 2;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .footer {
+        font-size: 6px;
+        color: var(--soft);
+        letter-spacing: 2px;
+      }
+      .deco {
+        font-size: 24px;
+        letter-spacing: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="deco">🌲🏡🌲</div>
+      <div class="logo">PIXEL<span>FOCUS</span></div>
+      <div class="tagline">★ STAY COZY · STAY FOCUSED ★</div>
+      <span class="character" id="char">🧑‍💻</span>
+      <div class="char-msg" id="charMsg">READY TO FOCUS?</div>
+
+      <!-- Auto-start toggle -->
+      <div class="autostart-bar">
+        <span>AUTO-START NEXT TIMER</span>
+        <div
+          class="pill-toggle on"
+          id="autoToggle"
+          title="Toggle auto-start"
+        ></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-mode="pomodoro">FOCUS</button>
+        <button class="tab" data-mode="short">SHORT</button>
+        <button class="tab" data-mode="long">LONG</button>
+      </div>
+
+      <div class="card">
+        <div class="ring-wrap">
+          <svg width="210" height="210" viewBox="0 0 210 210">
+            <circle class="ring-track" cx="105" cy="105" r="91" />
+            <circle class="ring-fill" id="ringFill" cx="105" cy="105" r="91" />
+          </svg>
+          <div class="timer-inner">
+            <div class="timer-time" id="timerDisplay">25:00</div>
+            <div class="mode-badge" id="modeLabel">FOCUS TIME</div>
+          </div>
+        </div>
+
+        <div class="autostart-countdown" id="autoCountdown"></div>
+
+        <div class="sessions-row">
+          <span class="sessions-lbl">SESSION:</span>
+          <div class="dot" id="d0"></div>
+          <div class="dot" id="d1"></div>
+          <div class="dot" id="d2"></div>
+          <div class="dot" id="d3"></div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-sm" id="resetBtn">↺</button>
+          <button class="btn btn-main" id="startBtn">▶ START</button>
+          <button class="btn btn-sm" id="skipBtn">⏭</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num" id="statS">0</div>
+          <div class="stat-lbl">SESSIONS</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="statM">0</div>
+          <div class="stat-lbl">MINUTES</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="statK">0</div>
+          <div class="stat-lbl">STREAK 🔥</div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+      <div class="footer">DESIGN BY ZOE TANG</div>
+    </div>
+
+    <script>
+      // ── Audio ──
+      let audioCtx = null;
+      function getCtx() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+      }
+
+      function playChime(type) {
+        const ctx = getCtx();
+        // Different chime for focus complete vs break complete
+        const notes =
+          type === "pomodoro"
+            ? [523.25, 659.25, 783.99, 1046.5] // C5 E5 G5 C6 — uplifting
+            : [783.99, 659.25, 523.25]; // G5 E5 C5 — gentle descend
+
+        let t = ctx.currentTime;
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, t + i * 0.18);
+          gain.gain.setValueAtTime(0, t + i * 0.18);
+          gain.gain.linearRampToValueAtTime(0.28, t + i * 0.18 + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.18 + 0.55);
+          osc.start(t + i * 0.18);
+          osc.stop(t + i * 0.18 + 0.6);
+        });
+      }
+
+      function playTick() {
+        const ctx = getCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "square";
+        osc.frequency.value = 1200;
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.05);
+      }
+
+      // ── State ──
+      const C = 2 * Math.PI * 91;
+      const ring = document.getElementById("ringFill");
+      ring.style.strokeDasharray = C;
+      ring.style.strokeDashoffset = "0";
+
+      const cfg = {
+        pomodoro: {
+          secs: 25 * 60,
+          label: "FOCUS TIME",
+          char: "🧑‍💻",
+          msg: "TIME TO FOCUS!",
+          next: "short",
+        },
+        short: {
+          secs: 5 * 60,
+          label: "SHORT BREAK",
+          char: "☕",
+          msg: "TAKE A BREATHER~",
+          next: "pomodoro",
+        },
+        long: {
+          secs: 15 * 60,
+          label: "LONG BREAK",
+          char: "🛋️",
+          msg: "RELAX & RECHARGE!",
+          next: "pomodoro",
+        },
+      };
+
+      let mode = "pomodoro",
+        total = cfg.pomodoro.secs,
+        left = total;
+      let running = false,
+        ticker = null,
+        autoTicker = null,
+        autoSecsLeft = 0;
+      let sessions = 0,
+        mins = 0,
+        streak = 0;
+      let autoOn = true;
+
+      const $ = (id) => document.getElementById(id);
+      const disp = $("timerDisplay"),
+        badge = $("modeLabel"),
+        startB = $("startBtn");
+      const charEl = $("char"),
+        msgEl = $("charMsg"),
+        toast = $("toast");
+      const autoCD = $("autoCountdown"),
+        autoToggle = $("autoToggle");
+
+      // ── Helpers ──
+      function fmt(s) {
+        return (
+          String(Math.floor(s / 60)).padStart(2, "0") +
+          ":" +
+          String(s % 60).padStart(2, "0")
+        );
+      }
+
+      function render() {
+        disp.textContent = fmt(left);
+        ring.style.strokeDashoffset = C * (1 - left / total);
+      }
+
+      function setBreakStyle(isBreak) {
+        ring.classList.toggle("break-mode", isBreak);
+        badge.classList.toggle("break-mode", isBreak);
+      }
+
+      function setMode(m, autoStart = false) {
+        mode = m;
+        const c = cfg[m];
+        total = c.secs;
+        left = total;
+        badge.textContent = c.label;
+        charEl.textContent = c.char;
+        msgEl.textContent = c.msg;
+        setBreakStyle(m !== "pomodoro");
+        stopTimer();
+        stopAutoCountdown();
+        startB.textContent = "▶ START";
+        render();
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.toggle("active", t.dataset.mode === m));
+        if (autoStart) start();
+      }
+
+      function stopTimer() {
+        clearInterval(ticker);
+        running = false;
+      }
+
+      function start() {
+        // Unlock audio on first user interaction / auto-start
+        getCtx();
+        running = true;
+        startB.textContent = "⏸ PAUSE";
+        ticker = setInterval(() => {
+          left--;
+          // subtle tick in last 5 seconds
+          if (left <= 5 && left > 0) playTick();
+          render();
+          if (left <= 0) {
+            stopTimer();
+            complete();
+          }
+        }, 1000);
+      }
+
+      function stopAutoCountdown() {
+        clearInterval(autoTicker);
+        autoCD.textContent = "";
+        autoSecsLeft = 0;
+      }
+
+      function startAutoCountdown(nextMode) {
+        autoSecsLeft = 5;
+        autoCD.textContent = `NEXT: ${cfg[nextMode].label} IN ${autoSecsLeft}S...`;
+        autoTicker = setInterval(() => {
+          autoSecsLeft--;
+          if (autoSecsLeft <= 0) {
+            stopAutoCountdown();
+            setMode(nextMode, true);
+          } else {
+            autoCD.textContent = `NEXT: ${cfg[nextMode].label} IN ${autoSecsLeft}S...`;
+          }
+        }, 1000);
+      }
+
+      function complete() {
+        startB.textContent = "▶ START";
+        const nextMode = cfg[mode].next;
+
+        if (mode === "pomodoro") {
+          sessions++;
+          mins += 25;
+          streak++;
+          $("statS").textContent = sessions;
+          $("statM").textContent = mins;
+          $("statK").textContent = streak;
+          const dotIdx = (sessions - 1) % 4;
+          $("d" + dotIdx).classList.add("done");
+          if (sessions % 4 === 0)
+            document
+              .querySelectorAll(".dot")
+              .forEach((d) => d.classList.remove("done"));
+          playChime("pomodoro");
+          showToast("🍅 SESSION DONE! NICE WORK!");
+        } else {
+          playChime("break");
+          showToast("✨ BREAK OVER! LETS GO!");
+        }
+
+        if (autoOn) startAutoCountdown(nextMode);
+      }
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3500);
+      }
+
+      // ── Events ──
+      startB.addEventListener("click", () => {
+        stopAutoCountdown();
+        running ? (stopTimer(), (startB.textContent = "▶ START")) : start();
+      });
+
+      $("resetBtn").addEventListener("click", () => {
+        stopAutoCountdown();
+        setMode(mode);
+      });
+
+      $("skipBtn").addEventListener("click", () => {
+        stopAutoCountdown();
+        stopTimer();
+        left = 0;
+        render();
+        complete();
+      });
+
+      document.querySelectorAll(".tab").forEach((t) =>
+        t.addEventListener("click", () => {
+          stopAutoCountdown();
+          setMode(t.dataset.mode);
+        }),
+      );
+
+      autoToggle.addEventListener("click", () => {
+        autoOn = !autoOn;
+        autoToggle.classList.toggle("on", autoOn);
+        if (!autoOn) stopAutoCountdown();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
